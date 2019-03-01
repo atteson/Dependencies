@@ -33,7 +33,7 @@ function (node::ArrayNode{T})() where {T}
         end
 
         parametervalues = [parameter() for parameter in node.parameters]
-        node.value = node.f!( node.value, parametervalues... )
+        node.f!( node.value, parametervalues... )
         node.dirty = false
     end
     return node.value
