@@ -12,6 +12,8 @@ mutable struct ArrayNode{T,N} <: AbstractArrayNode{T,N}
     parameterof::Vector{ArrayNode}
     value::Union{Array{T,N},Missing}
     dirty::Bool
+
+    parametervalues::Vector{
 end
 
 function ArrayNode( T, size::NTuple{N,Int}, f::Function, parameters::AbstractArrayNode... ) where {N}
