@@ -5,7 +5,7 @@ using Serialization
 
 const defaultdir = joinpath( dirname(dirname(pathof(Dependencies))), "data" )
 
-struct FunctionNode{F1 <: Function, F2 <: Function}
+struct FunctionNode{F1 <: Function, F2 <: Function} <: Function
     f::F1
     hash::F2
     dir::String
