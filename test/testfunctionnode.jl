@@ -18,3 +18,5 @@ fnode = Dependencies.FunctionNode( f )
 # 5.8s
 @time fnode( 1, n )
 # 0.0s
+
+delete!( fnode, 1, n )

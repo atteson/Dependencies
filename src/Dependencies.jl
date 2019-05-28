@@ -14,22 +14,30 @@ end
 FunctionNode( f::F1; hash::F2 = hash, dir::String = defaultdir ) where {F1, F2} =
     FunctionNode( f, hash, dir )
 
-function (f::FunctionNode{F1,F2})( args... ) where {F1, F2}
-    mkpath( f.dir )
-    filename = joinpath( f.dir, base64encode( f.hash( (f, args...) ) ) )
-    if isfile( filename )
-        io = open( filename, "r" )
+filename( f::FunctionNode{F1, F2}, args... ) where {F1, F2} =
+    joinpath( f.dir, base64encode( f.hash( (f, args...) ) ) )
+
+function (f::FunctionNode{F1, F2})( args... ) where {F1, F2}
+    file = filename( f, args... )
+    if isfile( file )
+        io = open( file, "r" )
         object = deserialize( io )
         close( io )
     else
         object = f.f( args... )
 
-        io = open( filename, "w" )
+        io = open( file, "w" )
         serialize( io, object )
         close( io )
     end
     return object
 end
-    
+
+function Base.delete!( f::FunctionNode, args... )
+    file = filename( f, args... )
+    if isfile( file )
+        rm( file )
+    end
+end
 
 end # module
