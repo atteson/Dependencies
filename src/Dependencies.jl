@@ -1,6 +1,6 @@
 module Dependencies
 
-recursivewrite( io::IO, x::Float64 ) = write( io, x )
+recursivewrite( io::IO, x ) = write( io, x )
 
 function recursivewrite( io::IO, v::Array{T,N} ) where {T,N}
     sizes = size( v )
@@ -12,7 +12,7 @@ function recursivewrite( io::IO, v::Array{T,N} ) where {T,N}
     end
 end
 
-recursiveread( io::IO, t::Type{Float64} ) = read( io, t )
+recursiveread( io::IO, t::Type{T} ) where {T} = read( io, t )
 
 function recursiveread( io::IO, ::Type{Array{T,N}} ) where {T,N}
     sizes = Int[]
