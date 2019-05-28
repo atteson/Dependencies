@@ -1,63 +1,29 @@
 module Dependencies
 
-export ArrayNode, ArrayTerminal
+recursivewrite( io::IO, x::Float64 ) = write( io, x )
 
-abstract type AbstractArrayNode{T,N} end
-
-mutable struct ArrayNode{T,N} <: AbstractArrayNode{T,N}
-    f!::Function
-    parameters::Vector{AbstractArrayNode}
-    size::NTuple{N,Int}
-    
-    parameterof::Vector{ArrayNode}
-    value::Union{Array{T,N},Missing}
-    dirty::Bool
-
-    parametervalues::Vector{
-end
-
-function ArrayNode( T, size::NTuple{N,Int}, f::Function, parameters::AbstractArrayNode... ) where {N}
-    node = ArrayNode{T,N}( f, AbstractArrayNode[parameters...], size, ArrayNode[], missing, true )
-    for parameter in parameters
-        setparameterof!( node, parameter )
+function recursivewrite( io::IO, v::Array{T,N} ) where {T,N}
+    sizes = size( v )
+    for i in 1:N
+        write( io, sizes[i] )
     end
-    return node
-end
-
-function setparameterof!( node::ArrayNode, parameter::AbstractArrayNode )
-    push!( parameter.parameterof, node )
-end
-
-function (node::ArrayNode{T})() where {T}
-    if node.dirty
-        if ismissing( node.value )
-            node.value = zeros( T, node.size )
-        end
-
-        parametervalues = [parameter() for parameter in node.parameters]
-        node.f!( node.value, parametervalues... )
-        node.dirty = false
+    for i = 1:prod(sizes)
+        recursivewrite( io, v[i] )
     end
-    return node.value
 end
 
-function invalidate!( node::ArrayNode )
-    node.dirty = true
-    invalidate!.( node.parameterof )
-end
+recursiveread( io::IO, t::Type{Float64} ) = read( io, t )
 
-mutable struct ArrayTerminal{T,N} <: AbstractArrayNode{T,N}
-    parameterof::Vector{ArrayNode}
-    value::Union{Array{T,N},Missing}
-end
-
-ArrayTerminal( value::Array ) = ArrayTerminal( ArrayNode[], value )
-
-(t::ArrayTerminal)() = t.value
-
-function (t::ArrayTerminal{T,N})( value::Array{T,N} ) where {T,N}
-    t.value = value
-    invalidate!.( t.parameterof )
+function recursiveread( io::IO, ::Type{Array{T,N}} ) where {T,N}
+    sizes = Int[]
+    for i in 1:N
+        push!( sizes, Base.read( io, Int ) )
+    end
+    v = T[]
+    for i = 1:prod(sizes)
+        push!( v, recursiveread( io, T ) )
+    end
+    return v
 end
 
 end # module
