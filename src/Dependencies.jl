@@ -1,30 +1,27 @@
 module Dependencies
 
-using Base64
+using Printf
 using Serialization
 
 const defaultdir = joinpath( dirname(dirname(pathof(Dependencies))), "data" )
 
-struct FunctionNode{F1 <: Function, F2 <: Function} <: Function
+struct FunctionNode{F1 <: Function} <: Function
     f::F1
-    hash::F2
-    dir::String
 end
 
-FunctionNode( f::F1; hash::F2 = hash, dir::String = defaultdir ) where {F1, F2} =
-    FunctionNode( f, hash, dir )
+FunctionNode( f::F1 ) where {F1, F2} = FunctionNode( f )
 
-filename( f::FunctionNode{F1, F2}, args... ) where {F1, F2} =
-    joinpath( f.dir, base64encode( f.hash( (f, args...) ) ) )
+filename( f::FunctionNode{F1}, args...; kwargs... ) where {F1} =
+    joinpath( defaultdir, @sprintf( "%0x", hash( (f, args..., kwargs...) ) ) )
 
-function (f::FunctionNode{F1, F2})( args... ) where {F1, F2}
-    file = filename( f, args... )
+function (f::FunctionNode{F1})( args...; kwargs... ) where {F1}
+    file = filename( f, args...; kwargs... )
     if isfile( file )
         io = open( file, "r" )
         object = deserialize( io )
         close( io )
     else
-        object = f.f( args... )
+        object = f.f( args...; kwargs... )
 
         io = open( file, "w" )
         serialize( io, object )
@@ -33,11 +30,13 @@ function (f::FunctionNode{F1, F2})( args... ) where {F1, F2}
     return object
 end
 
-function Base.delete!( f::FunctionNode, args... )
-    file = filename( f, args... )
+function Base.delete!( f::FunctionNode, args...; kwargs... )
+    file = filename( f, args...; kwargs... )
     if isfile( file )
         rm( file )
     end
 end
+
+getinstance( ::Type{FunctionNode{F1}} ) where {F1} = FunctionNode( F1.instance )
 
 end # module
