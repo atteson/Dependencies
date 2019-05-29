@@ -1,5 +1,7 @@
 module Dependencies
 
+export FunctionNode
+
 using Serialization
 using SHA
 
