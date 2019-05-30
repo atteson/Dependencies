@@ -20,6 +20,8 @@ function filename( f::FunctionNode{F1}, args...; kwargs... ) where {F1}
     return joinpath( defaultdir, name )
 end
 
+compress( object ) = object
+
 function (f::FunctionNode{F1})( args...; kwargs... ) where {F1}
     file = filename( f, args...; kwargs... )
     if isfile( file )
@@ -28,6 +30,9 @@ function (f::FunctionNode{F1})( args...; kwargs... ) where {F1}
         close( io )
     else
         object = f.f( args...; kwargs... )
+        
+        # give the object a chance to get rid of excess stuff
+        compress( object )
 
         io = open( file, "w" )
         serialize( io, object )
